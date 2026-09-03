@@ -1210,43 +1210,55 @@ else:
             )
 
 
-        # =================================================
-        # WORKING DAY
-        # =================================================
+        
+        # =========================================================
+        # WORKING DAY VS NON-WORKING DAY
+        # =========================================================
 
-        if {
-            "workingday",
-            "cnt"
-        }.issubset(viz_df.columns):
+if {"workingday", "cnt"}.issubset(viz_df.columns):
 
+    st.subheader(
+        "💼 Working Day vs Non-Working Day"
+    )
 
-            st.subheader(
-                "💼 Working Day vs Non-Working Day"
-            )
+    working_viz = viz_df.copy()
 
+    # Convert workingday safely
+    working_viz["workingday"] = pd.to_numeric(
+        working_viz["workingday"],
+        errors="coerce"
+    )
 
-            working_demand = (
-                viz_df
-                .groupby("workingday")["cnt"]
-                .mean()
-                .round(0)
-            )
+    # Remove invalid / missing values such as '?'
+    working_viz = working_viz.dropna(
+        subset=["workingday", "cnt"]
+    )
 
+    working_demand = (
+        working_viz
+        .groupby("workingday")["cnt"]
+        .mean()
+        .round(0)
+    )
 
-            working_demand.index = [
-                "Non-Working Day"
-                if int(x) == 0
-                else "Working Day"
-                for x in working_demand.index
-            ]
+    # Rename safely
+    working_demand.index = [
+        "Non-Working Day"
+        if value == 0
+        else "Working Day"
+        for value in working_demand.index
+    ]
 
+    st.bar_chart(
+        working_demand,
+        use_container_width=True
+    )
 
-            st.bar_chart(
-                working_demand,
-                use_container_width=True
-            )
-
-
+    st.caption(
+        "Average bike rental demand on working "
+        "days compared with non-working days."
+    )
+                
         # =================================================
         # WEATHER
         # =================================================
