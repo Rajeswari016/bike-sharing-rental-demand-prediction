@@ -564,9 +564,6 @@ if predict_button:
 
     try:
 
-        # -------------------------------------------------
-        # CATEGORICAL CONVERSION
-        # -------------------------------------------------
         holiday = (
             1
             if holiday_str == "Yes"
@@ -580,18 +577,16 @@ if predict_button:
         )
 
 
-        # -------------------------------------------------
+        # =================================================
         # WEATHER SCALING
-        # -------------------------------------------------
+        # =================================================
         weather_array = np.array(
-            [
-                [
-                    temp_raw,
-                    atemp_raw,
-                    hum_raw,
-                    windspeed_raw
-                ]
-            ]
+            [[
+                temp_raw,
+                atemp_raw,
+                hum_raw,
+                windspeed_raw
+            ]]
         )
 
         scaled_features = scaler.transform(
@@ -615,33 +610,27 @@ if predict_button:
         )
 
 
-        # -------------------------------------------------
+        # =================================================
         # FEATURE ENGINEERING
-        # -------------------------------------------------
-        peak_hour = get_peak_hour(
-            hr
-        )
+        # =================================================
+        peak_hour = get_peak_hour(hr)
 
-        hour_bucket = get_hour_bucket_str(
-            hr
-        )
+        hour_bucket = get_hour_bucket_str(hr)
 
         hour_bucket_encoded = encode_hour_bucket(
             hour_bucket
         )
 
-        weekend = get_weekend(
-            weekday
-        )
+        weekend = get_weekend(weekday)
 
         temp_difference = abs(
             temp_raw - atemp_raw
         )
 
 
-        # -------------------------------------------------
+        # =================================================
         # SEASON ENCODING
-        # -------------------------------------------------
+        # =================================================
         season_spring = (
             1
             if season_str == "spring"
@@ -661,9 +650,9 @@ if predict_button:
         )
 
 
-        # -------------------------------------------------
+        # =================================================
         # WEATHER ENCODING
-        # -------------------------------------------------
+        # =================================================
         weathersit_heavy_rain = (
             1
             if weathersit_str == "Heavy Rain"
@@ -683,9 +672,9 @@ if predict_button:
         )
 
 
-        # -------------------------------------------------
+        # =================================================
         # INPUT DATAFRAME
-        # -------------------------------------------------
+        # =================================================
         input_data = pd.DataFrame(
             [[
                 yr,
@@ -734,9 +723,9 @@ if predict_button:
         )
 
 
-        # -------------------------------------------------
+        # =================================================
         # MODEL PREDICTION
-        # -------------------------------------------------
+        # =================================================
         prediction = loaded_model.predict(
             input_data
         )
@@ -954,7 +943,7 @@ else:
 
 
         # =================================================
-        # REPLACE ? WITH NaN
+        # CLEAN DATA
         # =================================================
         viz_df = viz_df.replace(
             "?",
@@ -962,9 +951,6 @@ else:
         )
 
 
-        # =================================================
-        # SAFE NUMERIC CONVERSION
-        # =================================================
         numeric_columns = [
             "hr",
             "mnth",
@@ -980,6 +966,7 @@ else:
             "season",
             "weathersit"
         ]
+
 
         for column in numeric_columns:
 
@@ -1006,6 +993,7 @@ else:
         st.subheader(
             "📈 Dataset Overview"
         )
+
 
         v1, v2, v3, v4 = st.columns(4)
 
@@ -1040,21 +1028,15 @@ else:
 
             if "cnt" in viz_df.columns:
 
-                total_cnt = pd.to_numeric(
-                    viz_df["cnt"],
-                    errors="coerce"
-                ).sum()
+                total_rentals = (
+                    viz_df["cnt"]
+                    .dropna()
+                    .sum()
+                )
 
                 st.metric(
                     "🚴 Total Rentals",
-                    f"{int(total_cnt):,}"
-                )
-
-            else:
-
-                st.metric(
-                    "🚴 Demand",
-                    "Column Missing"
+                    f"{int(total_rentals):,}"
                 )
 
 
@@ -1070,21 +1052,34 @@ else:
                 "⏰ Average Bike Rental Demand by Hour"
             )
 
-            hourly_df = viz_df.dropna(
-                subset=["hr", "cnt"]
-            )
+
+            hourly_df = viz_df[
+                ["hr", "cnt"]
+            ].dropna()
+
 
             hourly_demand = (
                 hourly_df
-                .groupby("hr")["cnt"]
+                .groupby(
+                    "hr",
+                    as_index=False
+                )["cnt"]
                 .mean()
                 .round(0)
             )
 
+
+            hourly_demand.columns = [
+                "Hour",
+                "Average Rentals"
+            ]
+
+
             st.line_chart(
-                hourly_demand,
+                hourly_demand.set_index("Hour"),
                 use_container_width=True
             )
+
 
             st.caption(
                 "Average rental demand for each hour of the day."
@@ -1103,19 +1098,31 @@ else:
                 "📅 Average Bike Rental Demand by Month"
             )
 
-            monthly_df = viz_df.dropna(
-                subset=["mnth", "cnt"]
-            )
+
+            monthly_df = viz_df[
+                ["mnth", "cnt"]
+            ].dropna()
+
 
             monthly_demand = (
                 monthly_df
-                .groupby("mnth")["cnt"]
+                .groupby(
+                    "mnth",
+                    as_index=False
+                )["cnt"]
                 .mean()
                 .round(0)
             )
 
+
+            monthly_demand.columns = [
+                "Month",
+                "Average Rentals"
+            ]
+
+
             st.bar_chart(
-                monthly_demand,
+                monthly_demand.set_index("Month"),
                 use_container_width=True
             )
 
@@ -1132,34 +1139,50 @@ else:
                 "🍂 Season-wise Bike Rental Demand"
             )
 
-            season_df = viz_df.dropna(
-                subset=["season", "cnt"]
-            )
+
+            season_df = viz_df[
+                ["season", "cnt"]
+            ].dropna()
+
 
             season_demand = (
                 season_df
-                .groupby("season")["cnt"]
+                .groupby(
+                    "season",
+                    as_index=False
+                )["cnt"]
                 .mean()
                 .round(0)
             )
 
-            season_demand.index = [
-                (
-                    "Spring"
-                    if value == 1
-                    else "Summer"
-                    if value == 2
-                    else "Fall"
-                    if value == 3
-                    else "Winter"
-                    if value == 4
-                    else str(value)
-                )
-                for value in season_demand.index
+
+            season_names = {
+                1: "Spring",
+                2: "Summer",
+                3: "Fall",
+                4: "Winter"
+            }
+
+
+            season_demand["Season"] = (
+                season_demand["season"]
+                .map(season_names)
+            )
+
+
+            season_demand = season_demand[
+                ["Season", "cnt"]
             ]
 
+
+            season_demand.columns = [
+                "Season",
+                "Average Rentals"
+            ]
+
+
             st.bar_chart(
-                season_demand,
+                season_demand.set_index("Season"),
                 use_container_width=True
             )
 
@@ -1176,56 +1199,48 @@ else:
                 "💼 Working Day vs Non-Working Day"
             )
 
-            working_viz = viz_df.copy()
+
+            working_df = viz_df[
+                ["workingday", "cnt"]
+            ].dropna()
 
 
-            # Safe numeric conversion
-            working_viz["workingday"] = pd.to_numeric(
-                working_viz["workingday"],
-                errors="coerce"
-            )
-
-            working_viz["cnt"] = pd.to_numeric(
-                working_viz["cnt"],
-                errors="coerce"
-            )
-
-
-            # Remove invalid values
-            working_viz = working_viz.dropna(
-                subset=[
-                    "workingday",
-                    "cnt"
-                ]
-            )
-
-
-            # Group by working day
             working_demand = (
-                working_viz
-                .groupby("workingday")["cnt"]
+                working_df
+                .groupby(
+                    "workingday",
+                    as_index=False
+                )["cnt"]
                 .mean()
                 .round(0)
             )
 
 
-            # Rename
-            working_demand.index = [
-                (
-                    "Non-Working Day"
-                    if value == 0
-                    else "Working Day"
-                    if value == 1
-                    else str(value)
-                )
-                for value in working_demand.index
+            working_demand["Day Type"] = (
+                working_demand["workingday"]
+                .map({
+                    0: "Non-Working Day",
+                    1: "Working Day"
+                })
+            )
+
+
+            working_demand = working_demand[
+                ["Day Type", "cnt"]
+            ]
+
+
+            working_demand.columns = [
+                "Day Type",
+                "Average Rentals"
             ]
 
 
             st.bar_chart(
-                working_demand,
+                working_demand.set_index("Day Type"),
                 use_container_width=True
             )
+
 
             st.caption(
                 "Average bike rental demand on working "
@@ -1234,7 +1249,7 @@ else:
 
 
         # =================================================
-        # WEATHER
+        # WEATHER SITUATION
         # =================================================
         if {
             "weathersit",
@@ -1245,37 +1260,50 @@ else:
                 "🌦️ Weather Situation vs Rental Demand"
             )
 
-            weather_viz = viz_df.dropna(
-                subset=[
-                    "weathersit",
-                    "cnt"
-                ]
-            )
+
+            weather_df = viz_df[
+                ["weathersit", "cnt"]
+            ].dropna()
+
 
             weather_demand = (
-                weather_viz
-                .groupby("weathersit")["cnt"]
+                weather_df
+                .groupby(
+                    "weathersit",
+                    as_index=False
+                )["cnt"]
                 .mean()
                 .round(0)
             )
 
-            weather_demand.index = [
-                (
-                    "Clear"
-                    if value == 1
-                    else "Mist"
-                    if value == 2
-                    else "Light Snow"
-                    if value == 3
-                    else "Heavy Rain"
-                    if value == 4
-                    else str(value)
-                )
-                for value in weather_demand.index
+
+            weather_names = {
+                1: "Clear",
+                2: "Mist",
+                3: "Light Snow",
+                4: "Heavy Rain"
+            }
+
+
+            weather_demand["Weather"] = (
+                weather_demand["weathersit"]
+                .map(weather_names)
+            )
+
+
+            weather_demand = weather_demand[
+                ["Weather", "cnt"]
             ]
 
+
+            weather_demand.columns = [
+                "Weather",
+                "Average Rentals"
+            ]
+
+
             st.bar_chart(
-                weather_demand,
+                weather_demand.set_index("Weather"),
                 use_container_width=True
             )
 
@@ -1292,36 +1320,49 @@ else:
                 "🌡️ Temperature vs Rental Demand"
             )
 
-            temp_viz = viz_df.dropna(
-                subset=[
-                    "temp",
-                    "cnt"
-                ]
-            )
 
-            if len(temp_viz) > 0:
+            temp_df = viz_df[
+                ["temp", "cnt"]
+            ].dropna()
 
-                temp_bins = pd.cut(
-                    temp_viz["temp"],
+
+            if len(temp_df) > 0:
+
+                temp_df["Temperature Range"] = pd.cut(
+                    temp_df["temp"],
                     bins=10
                 )
 
+
                 temp_demand = (
-                    temp_viz
+                    temp_df
                     .groupby(
-                        temp_bins,
-                        observed=True
+                        "Temperature Range",
+                        observed=True,
+                        as_index=False
                     )["cnt"]
                     .mean()
                     .round(0)
                 )
 
-                temp_demand.index = (
-                    temp_demand.index.astype(str)
+
+                temp_demand["Temperature Range"] = (
+                    temp_demand[
+                        "Temperature Range"
+                    ].astype(str)
                 )
 
+
+                temp_demand.columns = [
+                    "Temperature Range",
+                    "Average Rentals"
+                ]
+
+
                 st.line_chart(
-                    temp_demand,
+                    temp_demand.set_index(
+                        "Temperature Range"
+                    ),
                     use_container_width=True
                 )
 
@@ -1338,36 +1379,49 @@ else:
                 "💧 Humidity vs Rental Demand"
             )
 
-            humidity_viz = viz_df.dropna(
-                subset=[
-                    "hum",
-                    "cnt"
-                ]
-            )
 
-            if len(humidity_viz) > 0:
+            humidity_df = viz_df[
+                ["hum", "cnt"]
+            ].dropna()
 
-                humidity_bins = pd.cut(
-                    humidity_viz["hum"],
+
+            if len(humidity_df) > 0:
+
+                humidity_df["Humidity Range"] = pd.cut(
+                    humidity_df["hum"],
                     bins=10
                 )
 
+
                 humidity_demand = (
-                    humidity_viz
+                    humidity_df
                     .groupby(
-                        humidity_bins,
-                        observed=True
+                        "Humidity Range",
+                        observed=True,
+                        as_index=False
                     )["cnt"]
                     .mean()
                     .round(0)
                 )
 
-                humidity_demand.index = (
-                    humidity_demand.index.astype(str)
+
+                humidity_demand["Humidity Range"] = (
+                    humidity_demand[
+                        "Humidity Range"
+                    ].astype(str)
                 )
 
+
+                humidity_demand.columns = [
+                    "Humidity Range",
+                    "Average Rentals"
+                ]
+
+
                 st.line_chart(
-                    humidity_demand,
+                    humidity_demand.set_index(
+                        "Humidity Range"
+                    ),
                     use_container_width=True
                 )
 
@@ -1384,36 +1438,49 @@ else:
                 "💨 Windspeed vs Rental Demand"
             )
 
-            wind_viz = viz_df.dropna(
-                subset=[
-                    "windspeed",
-                    "cnt"
-                ]
-            )
 
-            if len(wind_viz) > 0:
+            wind_df = viz_df[
+                ["windspeed", "cnt"]
+            ].dropna()
 
-                wind_bins = pd.cut(
-                    wind_viz["windspeed"],
+
+            if len(wind_df) > 0:
+
+                wind_df["Windspeed Range"] = pd.cut(
+                    wind_df["windspeed"],
                     bins=10
                 )
 
+
                 wind_demand = (
-                    wind_viz
+                    wind_df
                     .groupby(
-                        wind_bins,
-                        observed=True
+                        "Windspeed Range",
+                        observed=True,
+                        as_index=False
                     )["cnt"]
                     .mean()
                     .round(0)
                 )
 
-                wind_demand.index = (
-                    wind_demand.index.astype(str)
+
+                wind_demand["Windspeed Range"] = (
+                    wind_demand[
+                        "Windspeed Range"
+                    ].astype(str)
                 )
 
+
+                wind_demand.columns = [
+                    "Windspeed Range",
+                    "Average Rentals"
+                ]
+
+
                 st.line_chart(
-                    wind_demand,
+                    wind_demand.set_index(
+                        "Windspeed Range"
+                    ),
                     use_container_width=True
                 )
 
@@ -1430,12 +1497,10 @@ else:
                 "🔥 Peak Hours vs Normal Hours"
             )
 
-            peak_df = viz_df.dropna(
-                subset=[
-                    "hr",
-                    "cnt"
-                ]
-            ).copy()
+
+            peak_df = viz_df[
+                ["hr", "cnt"]
+            ].dropna().copy()
 
 
             peak_df["Peak_Hour"] = (
@@ -1446,24 +1511,37 @@ else:
 
             peak_demand = (
                 peak_df
-                .groupby("Peak_Hour")["cnt"]
+                .groupby(
+                    "Peak_Hour",
+                    as_index=False
+                )["cnt"]
                 .mean()
                 .round(0)
             )
 
 
-            peak_demand.index = [
-                (
-                    "Normal Hours"
-                    if int(value) == 0
-                    else "Peak Hours"
-                )
-                for value in peak_demand.index
+            peak_demand["Hour Type"] = (
+                peak_demand["Peak_Hour"]
+                .map({
+                    0: "Normal Hours",
+                    1: "Peak Hours"
+                })
+            )
+
+
+            peak_demand = peak_demand[
+                ["Hour Type", "cnt"]
+            ]
+
+
+            peak_demand.columns = [
+                "Hour Type",
+                "Average Rentals"
             ]
 
 
             st.bar_chart(
-                peak_demand,
+                peak_demand.set_index("Hour Type"),
                 use_container_width=True
             )
 
@@ -1477,10 +1555,14 @@ else:
                 "📊 Rental Demand Summary"
             )
 
-            clean_cnt = pd.to_numeric(
-                viz_df["cnt"],
-                errors="coerce"
-            ).dropna()
+
+            clean_cnt = (
+                pd.to_numeric(
+                    viz_df["cnt"],
+                    errors="coerce"
+                )
+                .dropna()
+            )
 
 
             if len(clean_cnt) > 0:
@@ -1544,6 +1626,7 @@ else:
         st.subheader(
             "👀 Dataset Preview"
         )
+
 
         st.dataframe(
             viz_df.head(10),
