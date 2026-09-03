@@ -31,7 +31,7 @@ SCALER_FILE = BASE_DIR / "scaler.pkl"
 ENCODER_FILE = BASE_DIR / "hour_bucket_encoder.pkl"
 
 # Your actual GitHub dataset filename
-DATA_FILE = BASE_DIR / "Bike_Sharing_Rental_Dataset.csvfile.csv"
+DATA_FILE = BASE_DIR / "Bike_Sharing_Rental_Dataset.csv"
 
 
 # =========================================================
@@ -1045,7 +1045,7 @@ if not DATA_FILE.exists():
 
     st.info(
         "Expected dataset file:\n\n"
-        "Bike_Sharing_Rental_Dataset.csvfile.csv"
+        "Bike_Sharing_Rental_Dataset.csv"
     )
 
 else:
