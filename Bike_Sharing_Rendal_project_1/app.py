@@ -30,8 +30,26 @@ MODEL_FILE = BASE_DIR / "optimized_xgboost_model.json"
 SCALER_FILE = BASE_DIR / "scaler.pkl"
 ENCODER_FILE = BASE_DIR / "hour_bucket_encoder.pkl"
 
-# Your actual GitHub dataset filename
-DATA_FILE = BASE_DIR / "Bike_Sharing_Rental_Dataset.csv"
+
+# =========================================================
+# FIND DATASET
+# =========================================================
+possible_dataset_files = [
+    "Bike_Sharing_Rental_Dataset.csv",
+    "Bike_Sharing_Rental_Dataset.csvfile.csv",
+    "Dataset.csv",
+    "hour.csv",
+    "train.csv"
+]
+
+DATA_FILE = None
+
+for file_name in possible_dataset_files:
+    file_path = BASE_DIR / file_name
+
+    if file_path.exists():
+        DATA_FILE = file_path
+        break
 
 
 # =========================================================
@@ -40,10 +58,6 @@ DATA_FILE = BASE_DIR / "Bike_Sharing_Rental_Dataset.csv"
 st.markdown(
     """
     <style>
-
-    /* ================================================
-       MAIN BACKGROUND
-       ================================================ */
 
     .stApp {
         background: linear-gradient(
@@ -54,11 +68,6 @@ st.markdown(
         );
     }
 
-
-    /* ================================================
-       MAIN TITLE
-       ================================================ */
-
     .main-title {
         text-align: center;
         font-size: 44px;
@@ -68,7 +77,6 @@ st.markdown(
         margin-bottom: 8px;
     }
 
-
     .main-subtitle {
         text-align: center;
         font-size: 18px;
@@ -76,33 +84,13 @@ st.markdown(
         margin-bottom: 30px;
     }
 
-
-    /* ================================================
-       HEADINGS
-       ================================================ */
-
-    h1,
-    h2,
-    h3,
-    h4,
-    h5,
-    h6 {
+    h1, h2, h3, h4, h5, h6 {
         color: #FFFFFF !important;
     }
-
-
-    /* ================================================
-       NORMAL TEXT
-       ================================================ */
 
     p {
         color: #E6EEF8 !important;
     }
-
-
-    /* ================================================
-       SIDEBAR
-       ================================================ */
 
     [data-testid="stSidebar"] {
         background: linear-gradient(
@@ -113,32 +101,20 @@ st.markdown(
         );
     }
 
-
     [data-testid="stSidebar"] * {
         color: #FFFFFF !important;
     }
-
 
     [data-testid="stSidebar"] label {
         color: #FFFFFF !important;
         font-weight: 600 !important;
     }
 
-
-    /* ================================================
-       SIDEBAR SELECT BOX
-       ================================================ */
-
     [data-testid="stSidebar"] [data-baseweb="select"] > div {
         background-color: #123A67 !important;
         color: #FFFFFF !important;
         border: 1px solid #4A8FD1 !important;
     }
-
-
-    /* ================================================
-       FEATURE CARDS
-       ================================================ */
 
     [data-testid="stVerticalBlockBorderWrapper"] {
         background: linear-gradient(
@@ -154,20 +130,13 @@ st.markdown(
             0 10px 30px rgba(0, 0, 0, 0.30);
     }
 
-
     [data-testid="stVerticalBlockBorderWrapper"] h3 {
         color: #FFFFFF !important;
     }
 
-
     [data-testid="stVerticalBlockBorderWrapper"] p {
         color: #DCE8F5 !important;
     }
-
-
-    /* ================================================
-       METRIC CARDS
-       ================================================ */
 
     [data-testid="stMetric"] {
         background: linear-gradient(
@@ -185,25 +154,19 @@ st.markdown(
             0 8px 25px rgba(0, 0, 0, 0.30);
     }
 
-
     [data-testid="stMetricLabel"] {
         color: #DCEBFF !important;
         font-weight: 700 !important;
     }
-
 
     [data-testid="stMetricValue"] {
         color: #FFFFFF !important;
         font-weight: 900 !important;
     }
 
-
-    /* ================================================
-       BUTTON
-       ================================================ */
-
     .stButton > button {
         width: 100%;
+
         background: linear-gradient(
             135deg,
             #2563EB,
@@ -224,7 +187,6 @@ st.markdown(
             0 8px 20px rgba(0, 0, 0, 0.30);
     }
 
-
     .stButton > button:hover {
         background: linear-gradient(
             135deg,
@@ -235,11 +197,6 @@ st.markdown(
         color: #FFFFFF !important;
     }
 
-
-    /* ================================================
-       DATAFRAME
-       ================================================ */
-
     [data-testid="stDataFrame"] {
         background: #FFFFFF !important;
         border-radius: 15px !important;
@@ -248,28 +205,13 @@ st.markdown(
             0 8px 25px rgba(0, 0, 0, 0.25);
     }
 
-
-    /* ================================================
-       ALERTS
-       ================================================ */
-
     [data-testid="stAlert"] {
         border-radius: 16px !important;
     }
 
-
-    /* ================================================
-       DIVIDER
-       ================================================ */
-
     hr {
         border-color: #3B5F86 !important;
     }
-
-
-    /* ================================================
-       FOOTER
-       ================================================ */
 
     .footer-text {
         text-align: center;
@@ -298,7 +240,6 @@ missing_model_files = [
     for file_path in required_model_files
     if not file_path.exists()
 ]
-
 
 if missing_model_files:
 
@@ -422,7 +363,6 @@ st.header(
     "🔍 About This Prediction System"
 )
 
-
 col1, col2, col3 = st.columns(3)
 
 
@@ -485,13 +425,11 @@ st.sidebar.subheader(
     "📅 Time Information"
 )
 
-
 yr = st.sidebar.selectbox(
     "Year",
     [2011, 2012],
     index=0
 )
-
 
 mnth = st.sidebar.slider(
     "Month",
@@ -500,14 +438,12 @@ mnth = st.sidebar.slider(
     value=7
 )
 
-
 hr = st.sidebar.slider(
     "Hour",
     min_value=0,
     max_value=23,
     value=12
 )
-
 
 weekday = st.sidebar.slider(
     "Day of Week",
@@ -527,12 +463,10 @@ st.sidebar.subheader(
     "📆 Day Information"
 )
 
-
 holiday_str = st.sidebar.selectbox(
     "Holiday",
     ["No", "Yes"]
 )
-
 
 workingday_str = st.sidebar.selectbox(
     "Working Day",
@@ -549,7 +483,6 @@ st.sidebar.subheader(
     "🌦️ Weather Information"
 )
 
-
 temp_raw = st.sidebar.slider(
     "Temperature",
     min_value=0.0,
@@ -557,7 +490,6 @@ temp_raw = st.sidebar.slider(
     value=0.50,
     step=0.01
 )
-
 
 atemp_raw = st.sidebar.slider(
     "Feeling Temperature",
@@ -567,7 +499,6 @@ atemp_raw = st.sidebar.slider(
     step=0.01
 )
 
-
 hum_raw = st.sidebar.slider(
     "Humidity",
     min_value=0.0,
@@ -575,7 +506,6 @@ hum_raw = st.sidebar.slider(
     value=0.50,
     step=0.01
 )
-
 
 windspeed_raw = st.sidebar.slider(
     "Windspeed",
@@ -595,7 +525,6 @@ st.sidebar.subheader(
     "🌤️ Conditions"
 )
 
-
 season_str = st.sidebar.selectbox(
     "Season",
     [
@@ -605,7 +534,6 @@ season_str = st.sidebar.selectbox(
         "winter"
     ]
 )
-
 
 weathersit_str = st.sidebar.selectbox(
     "Weather Situation",
@@ -623,7 +551,6 @@ weathersit_str = st.sidebar.selectbox(
 # =========================================================
 st.sidebar.markdown("---")
 
-
 predict_button = st.sidebar.button(
     "🚀 Predict Rental Demand",
     use_container_width=True
@@ -637,16 +564,14 @@ if predict_button:
 
     try:
 
-        # -----------------------------------------------
-        # Convert categorical inputs
-        # -----------------------------------------------
-
+        # -------------------------------------------------
+        # CATEGORICAL CONVERSION
+        # -------------------------------------------------
         holiday = (
             1
             if holiday_str == "Yes"
             else 0
         )
-
 
         workingday = (
             1
@@ -655,93 +580,79 @@ if predict_button:
         )
 
 
-        # -----------------------------------------------
-        # Weather scaling
-        # -----------------------------------------------
-
-        weather_array = np.array([
+        # -------------------------------------------------
+        # WEATHER SCALING
+        # -------------------------------------------------
+        weather_array = np.array(
             [
-                temp_raw,
-                atemp_raw,
-                hum_raw,
-                windspeed_raw
+                [
+                    temp_raw,
+                    atemp_raw,
+                    hum_raw,
+                    windspeed_raw
+                ]
             ]
-        ])
-
+        )
 
         scaled_features = scaler.transform(
             weather_array
         )
 
-
         temp = float(
             scaled_features[0][0]
         )
-
 
         atemp = float(
             scaled_features[0][1]
         )
 
-
         hum = float(
             scaled_features[0][2]
         )
-
 
         windspeed = float(
             scaled_features[0][3]
         )
 
 
-        # -----------------------------------------------
-        # Feature engineering
-        # -----------------------------------------------
-
+        # -------------------------------------------------
+        # FEATURE ENGINEERING
+        # -------------------------------------------------
         peak_hour = get_peak_hour(
             hr
         )
-
 
         hour_bucket = get_hour_bucket_str(
             hr
         )
 
-
-        hour_bucket_encoded = (
-            encode_hour_bucket(
-                hour_bucket
-            )
+        hour_bucket_encoded = encode_hour_bucket(
+            hour_bucket
         )
-
 
         weekend = get_weekend(
             weekday
         )
-
 
         temp_difference = abs(
             temp_raw - atemp_raw
         )
 
 
-        # -----------------------------------------------
-        # Season encoding
-        # -----------------------------------------------
-
+        # -------------------------------------------------
+        # SEASON ENCODING
+        # -------------------------------------------------
         season_spring = (
             1
             if season_str == "spring"
             else 0
         )
 
-
         season_summer = (
             1
             if season_str == "summer"
             else 0
         )
-
 
         season_winter = (
             1
@@ -750,23 +661,20 @@ if predict_button:
         )
 
 
-        # -----------------------------------------------
-        # Weather encoding
-        # -----------------------------------------------
-
+        # -------------------------------------------------
+        # WEATHER ENCODING
+        # -------------------------------------------------
         weathersit_heavy_rain = (
             1
             if weathersit_str == "Heavy Rain"
             else 0
         )
 
-
         weathersit_light_snow = (
             1
             if weathersit_str == "Light Snow"
             else 0
         )
-
 
         weathersit_mist = (
             1
@@ -775,10 +683,9 @@ if predict_button:
         )
 
 
-        # -----------------------------------------------
+        # -------------------------------------------------
         # INPUT DATAFRAME
-        # -----------------------------------------------
-
+        # -------------------------------------------------
         input_data = pd.DataFrame(
             [[
                 yr,
@@ -827,14 +734,12 @@ if predict_button:
         )
 
 
-        # -----------------------------------------------
+        # -------------------------------------------------
         # MODEL PREDICTION
-        # -----------------------------------------------
-
+        # -------------------------------------------------
         prediction = loaded_model.predict(
             input_data
         )
-
 
         predicted_count = max(
             0,
@@ -849,19 +754,16 @@ if predict_button:
         # =================================================
         # PREDICTION RESULT
         # =================================================
-
         st.markdown("---")
 
         st.header(
             "📊 Prediction Result"
         )
 
-
         st.success(
             f"🚴 Predicted Total Bike Rentals: "
             f"{predicted_count:,}"
         )
-
 
         r1, r2, r3 = st.columns(3)
 
@@ -893,13 +795,11 @@ if predict_button:
         # =================================================
         # SELECTED CONDITIONS
         # =================================================
-
         st.markdown("---")
 
         st.header(
             "📌 Selected Conditions"
         )
-
 
         c1, c2, c3, c4 = st.columns(4)
 
@@ -939,11 +839,9 @@ if predict_button:
         # =================================================
         # OTHER CONDITIONS
         # =================================================
-
         st.subheader(
             "🌦️ Other Selected Conditions"
         )
-
 
         o1, o2, o3 = st.columns(3)
 
@@ -978,13 +876,11 @@ if predict_button:
         # =================================================
         # INPUT DATA
         # =================================================
-
         st.markdown("---")
 
         st.header(
             "📋 Input Data Used for Prediction"
         )
-
 
         st.dataframe(
             input_data,
@@ -996,13 +892,11 @@ if predict_button:
         # =================================================
         # PREDICTION INFORMATION
         # =================================================
-
         st.markdown("---")
 
         st.subheader(
             "💡 Prediction Information"
         )
-
 
         st.info(
             "The prediction is generated using the trained "
@@ -1034,29 +928,72 @@ st.header(
 )
 
 
-# ---------------------------------------------------------
-# Check dataset
-# ---------------------------------------------------------
-if not DATA_FILE.exists():
+# =========================================================
+# DATASET CHECK
+# =========================================================
+if DATA_FILE is None:
 
     st.warning(
         "⚠️ Dataset file not found."
     )
 
     st.info(
-        "Expected dataset file:\n\n"
-        "Bike_Sharing_Rental_Dataset.csv"
+        "Please keep the dataset in the same folder as app.py."
     )
 
 else:
 
     try:
 
+        # =================================================
+        # LOAD DATASET
+        # =================================================
         viz_df = pd.read_csv(
             DATA_FILE
         )
 
 
+        # =================================================
+        # REPLACE ? WITH NaN
+        # =================================================
+        viz_df = viz_df.replace(
+            "?",
+            np.nan
+        )
+
+
+        # =================================================
+        # SAFE NUMERIC CONVERSION
+        # =================================================
+        numeric_columns = [
+            "hr",
+            "mnth",
+            "yr",
+            "holiday",
+            "weekday",
+            "workingday",
+            "temp",
+            "atemp",
+            "hum",
+            "windspeed",
+            "cnt",
+            "season",
+            "weathersit"
+        ]
+
+        for column in numeric_columns:
+
+            if column in viz_df.columns:
+
+                viz_df[column] = pd.to_numeric(
+                    viz_df[column],
+                    errors="coerce"
+                )
+
+
+        # =================================================
+        # DATASET LOADED
+        # =================================================
         st.success(
             f"✅ Dataset loaded successfully: "
             f"{DATA_FILE.name}"
@@ -1066,11 +1003,9 @@ else:
         # =================================================
         # DATASET OVERVIEW
         # =================================================
-
         st.subheader(
             "📈 Dataset Overview"
         )
-
 
         v1, v2, v3, v4 = st.columns(4)
 
@@ -1105,9 +1040,14 @@ else:
 
             if "cnt" in viz_df.columns:
 
+                total_cnt = pd.to_numeric(
+                    viz_df["cnt"],
+                    errors="coerce"
+                ).sum()
+
                 st.metric(
                     "🚴 Total Rentals",
-                    f"{int(viz_df['cnt'].sum()):,}"
+                    f"{int(total_cnt):,}"
                 )
 
             else:
@@ -1121,31 +1061,30 @@ else:
         # =================================================
         # HOURLY DEMAND
         # =================================================
-
         if {
             "hr",
             "cnt"
         }.issubset(viz_df.columns):
 
-
             st.subheader(
                 "⏰ Average Bike Rental Demand by Hour"
             )
 
+            hourly_df = viz_df.dropna(
+                subset=["hr", "cnt"]
+            )
 
             hourly_demand = (
-                viz_df
+                hourly_df
                 .groupby("hr")["cnt"]
                 .mean()
                 .round(0)
             )
 
-
             st.line_chart(
                 hourly_demand,
                 use_container_width=True
             )
-
 
             st.caption(
                 "Average rental demand for each hour of the day."
@@ -1155,25 +1094,25 @@ else:
         # =================================================
         # MONTHLY DEMAND
         # =================================================
-
         if {
             "mnth",
             "cnt"
         }.issubset(viz_df.columns):
 
-
             st.subheader(
                 "📅 Average Bike Rental Demand by Month"
             )
 
+            monthly_df = viz_df.dropna(
+                subset=["mnth", "cnt"]
+            )
 
             monthly_demand = (
-                viz_df
+                monthly_df
                 .groupby("mnth")["cnt"]
                 .mean()
                 .round(0)
             )
-
 
             st.bar_chart(
                 monthly_demand,
@@ -1184,25 +1123,40 @@ else:
         # =================================================
         # SEASON-WISE DEMAND
         # =================================================
-
         if {
             "season",
             "cnt"
         }.issubset(viz_df.columns):
 
-
             st.subheader(
                 "🍂 Season-wise Bike Rental Demand"
             )
 
+            season_df = viz_df.dropna(
+                subset=["season", "cnt"]
+            )
 
             season_demand = (
-                viz_df
+                season_df
                 .groupby("season")["cnt"]
                 .mean()
                 .round(0)
             )
 
+            season_demand.index = [
+                (
+                    "Spring"
+                    if value == 1
+                    else "Summer"
+                    if value == 2
+                    else "Fall"
+                    if value == 3
+                    else "Winter"
+                    if value == 4
+                    else str(value)
+                )
+                for value in season_demand.index
+            ]
 
             st.bar_chart(
                 season_demand,
@@ -1210,77 +1164,115 @@ else:
             )
 
 
-        
-        # =========================================================
+        # =================================================
         # WORKING DAY VS NON-WORKING DAY
-        # =========================================================
+        # =================================================
+        if {
+            "workingday",
+            "cnt"
+        }.issubset(viz_df.columns):
 
-if {"workingday", "cnt"}.issubset(viz_df.columns):
+            st.subheader(
+                "💼 Working Day vs Non-Working Day"
+            )
 
-    st.subheader(
-        "💼 Working Day vs Non-Working Day"
-    )
+            working_viz = viz_df.copy()
 
-    working_viz = viz_df.copy()
 
-    # Convert workingday safely
-    working_viz["workingday"] = pd.to_numeric(
-        working_viz["workingday"],
-        errors="coerce"
-    )
+            # Safe numeric conversion
+            working_viz["workingday"] = pd.to_numeric(
+                working_viz["workingday"],
+                errors="coerce"
+            )
 
-    # Remove invalid / missing values such as '?'
-    working_viz = working_viz.dropna(
-        subset=["workingday", "cnt"]
-    )
+            working_viz["cnt"] = pd.to_numeric(
+                working_viz["cnt"],
+                errors="coerce"
+            )
 
-    working_demand = (
-        working_viz
-        .groupby("workingday")["cnt"]
-        .mean()
-        .round(0)
-    )
 
-    # Rename safely
-    working_demand.index = [
-        "Non-Working Day"
-        if value == 0
-        else "Working Day"
-        for value in working_demand.index
-    ]
+            # Remove invalid values
+            working_viz = working_viz.dropna(
+                subset=[
+                    "workingday",
+                    "cnt"
+                ]
+            )
 
-    st.bar_chart(
-        working_demand,
-        use_container_width=True
-    )
 
-    st.caption(
-        "Average bike rental demand on working "
-        "days compared with non-working days."
-    )
-                
+            # Group by working day
+            working_demand = (
+                working_viz
+                .groupby("workingday")["cnt"]
+                .mean()
+                .round(0)
+            )
+
+
+            # Rename
+            working_demand.index = [
+                (
+                    "Non-Working Day"
+                    if value == 0
+                    else "Working Day"
+                    if value == 1
+                    else str(value)
+                )
+                for value in working_demand.index
+            ]
+
+
+            st.bar_chart(
+                working_demand,
+                use_container_width=True
+            )
+
+            st.caption(
+                "Average bike rental demand on working "
+                "days compared with non-working days."
+            )
+
+
         # =================================================
         # WEATHER
         # =================================================
-
         if {
             "weathersit",
             "cnt"
         }.issubset(viz_df.columns):
 
-
             st.subheader(
                 "🌦️ Weather Situation vs Rental Demand"
             )
 
+            weather_viz = viz_df.dropna(
+                subset=[
+                    "weathersit",
+                    "cnt"
+                ]
+            )
 
             weather_demand = (
-                viz_df
+                weather_viz
                 .groupby("weathersit")["cnt"]
                 .mean()
                 .round(0)
             )
 
+            weather_demand.index = [
+                (
+                    "Clear"
+                    if value == 1
+                    else "Mist"
+                    if value == 2
+                    else "Light Snow"
+                    if value == 3
+                    else "Heavy Rain"
+                    if value == 4
+                    else str(value)
+                )
+                for value in weather_demand.index
+            ]
 
             st.bar_chart(
                 weather_demand,
@@ -1291,148 +1283,159 @@ if {"workingday", "cnt"}.issubset(viz_df.columns):
         # =================================================
         # TEMPERATURE
         # =================================================
-
         if {
             "temp",
             "cnt"
         }.issubset(viz_df.columns):
 
-
             st.subheader(
                 "🌡️ Temperature vs Rental Demand"
             )
 
-
-            temp_bins = pd.cut(
-                viz_df["temp"],
-                bins=10
+            temp_viz = viz_df.dropna(
+                subset=[
+                    "temp",
+                    "cnt"
+                ]
             )
 
+            if len(temp_viz) > 0:
 
-            temp_demand = (
-                viz_df
-                .groupby(
-                    temp_bins,
-                    observed=True
-                )["cnt"]
-                .mean()
-                .round(0)
-            )
+                temp_bins = pd.cut(
+                    temp_viz["temp"],
+                    bins=10
+                )
 
+                temp_demand = (
+                    temp_viz
+                    .groupby(
+                        temp_bins,
+                        observed=True
+                    )["cnt"]
+                    .mean()
+                    .round(0)
+                )
 
-            temp_demand.index = (
-                temp_demand.index.astype(str)
-            )
+                temp_demand.index = (
+                    temp_demand.index.astype(str)
+                )
 
-
-            st.line_chart(
-                temp_demand,
-                use_container_width=True
-            )
+                st.line_chart(
+                    temp_demand,
+                    use_container_width=True
+                )
 
 
         # =================================================
         # HUMIDITY
         # =================================================
-
         if {
             "hum",
             "cnt"
         }.issubset(viz_df.columns):
 
-
             st.subheader(
                 "💧 Humidity vs Rental Demand"
             )
 
-
-            humidity_bins = pd.cut(
-                viz_df["hum"],
-                bins=10
+            humidity_viz = viz_df.dropna(
+                subset=[
+                    "hum",
+                    "cnt"
+                ]
             )
 
+            if len(humidity_viz) > 0:
 
-            humidity_demand = (
-                viz_df
-                .groupby(
-                    humidity_bins,
-                    observed=True
-                )["cnt"]
-                .mean()
-                .round(0)
-            )
+                humidity_bins = pd.cut(
+                    humidity_viz["hum"],
+                    bins=10
+                )
 
+                humidity_demand = (
+                    humidity_viz
+                    .groupby(
+                        humidity_bins,
+                        observed=True
+                    )["cnt"]
+                    .mean()
+                    .round(0)
+                )
 
-            humidity_demand.index = (
-                humidity_demand.index.astype(str)
-            )
+                humidity_demand.index = (
+                    humidity_demand.index.astype(str)
+                )
 
-
-            st.line_chart(
-                humidity_demand,
-                use_container_width=True
-            )
+                st.line_chart(
+                    humidity_demand,
+                    use_container_width=True
+                )
 
 
         # =================================================
         # WINDSPEED
         # =================================================
-
         if {
             "windspeed",
             "cnt"
         }.issubset(viz_df.columns):
 
-
             st.subheader(
                 "💨 Windspeed vs Rental Demand"
             )
 
-
-            wind_bins = pd.cut(
-                viz_df["windspeed"],
-                bins=10
+            wind_viz = viz_df.dropna(
+                subset=[
+                    "windspeed",
+                    "cnt"
+                ]
             )
 
+            if len(wind_viz) > 0:
 
-            wind_demand = (
-                viz_df
-                .groupby(
-                    wind_bins,
-                    observed=True
-                )["cnt"]
-                .mean()
-                .round(0)
-            )
+                wind_bins = pd.cut(
+                    wind_viz["windspeed"],
+                    bins=10
+                )
 
+                wind_demand = (
+                    wind_viz
+                    .groupby(
+                        wind_bins,
+                        observed=True
+                    )["cnt"]
+                    .mean()
+                    .round(0)
+                )
 
-            wind_demand.index = (
-                wind_demand.index.astype(str)
-            )
+                wind_demand.index = (
+                    wind_demand.index.astype(str)
+                )
 
-
-            st.line_chart(
-                wind_demand,
-                use_container_width=True
-            )
+                st.line_chart(
+                    wind_demand,
+                    use_container_width=True
+                )
 
 
         # =================================================
         # PEAK HOURS
         # =================================================
-
         if {
             "hr",
             "cnt"
         }.issubset(viz_df.columns):
 
-
             st.subheader(
                 "🔥 Peak Hours vs Normal Hours"
             )
 
-
-            peak_df = viz_df.copy()
+            peak_df = viz_df.dropna(
+                subset=[
+                    "hr",
+                    "cnt"
+                ]
+            ).copy()
 
 
             peak_df["Peak_Hour"] = (
@@ -1450,10 +1453,12 @@ if {"workingday", "cnt"}.issubset(viz_df.columns):
 
 
             peak_demand.index = [
-                "Normal Hours"
-                if int(x) == 0
-                else "Peak Hours"
-                for x in peak_demand.index
+                (
+                    "Normal Hours"
+                    if int(value) == 0
+                    else "Peak Hours"
+                )
+                for value in peak_demand.index
             ]
 
 
@@ -1466,79 +1471,79 @@ if {"workingday", "cnt"}.issubset(viz_df.columns):
         # =================================================
         # RENTAL SUMMARY
         # =================================================
-
         if "cnt" in viz_df.columns:
-
 
             st.subheader(
                 "📊 Rental Demand Summary"
             )
 
-
-            total_rentals = int(
-                viz_df["cnt"].sum()
-            )
-
-
-            average_rentals = round(
-                viz_df["cnt"].mean(),
-                2
-            )
+            clean_cnt = pd.to_numeric(
+                viz_df["cnt"],
+                errors="coerce"
+            ).dropna()
 
 
-            maximum_rentals = int(
-                viz_df["cnt"].max()
-            )
+            if len(clean_cnt) > 0:
 
+                total_rentals = int(
+                    clean_cnt.sum()
+                )
 
-            minimum_rentals = int(
-                viz_df["cnt"].min()
-            )
+                average_rentals = round(
+                    clean_cnt.mean(),
+                    2
+                )
 
+                maximum_rentals = int(
+                    clean_cnt.max()
+                )
 
-            s1, s2, s3, s4 = st.columns(4)
-
-
-            with s1:
-
-                st.metric(
-                    "🚴 Total Rentals",
-                    f"{total_rentals:,}"
+                minimum_rentals = int(
+                    clean_cnt.min()
                 )
 
 
-            with s2:
-
-                st.metric(
-                    "📊 Average Rentals",
-                    f"{average_rentals:,}"
-                )
+                s1, s2, s3, s4 = st.columns(4)
 
 
-            with s3:
+                with s1:
 
-                st.metric(
-                    "⬆️ Maximum Rentals",
-                    f"{maximum_rentals:,}"
-                )
+                    st.metric(
+                        "🚴 Total Rentals",
+                        f"{total_rentals:,}"
+                    )
 
 
-            with s4:
+                with s2:
 
-                st.metric(
-                    "⬇️ Minimum Rentals",
-                    f"{minimum_rentals:,}"
-                )
+                    st.metric(
+                        "📊 Average Rentals",
+                        f"{average_rentals:,}"
+                    )
+
+
+                with s3:
+
+                    st.metric(
+                        "⬆️ Maximum Rentals",
+                        f"{maximum_rentals:,}"
+                    )
+
+
+                with s4:
+
+                    st.metric(
+                        "⬇️ Minimum Rentals",
+                        f"{minimum_rentals:,}"
+                    )
 
 
         # =================================================
         # DATASET PREVIEW
         # =================================================
-
         st.subheader(
             "👀 Dataset Preview"
         )
-
 
         st.dataframe(
             viz_df.head(10),
@@ -1561,7 +1566,6 @@ if {"workingday", "cnt"}.issubset(viz_df.columns):
 # =========================================================
 # FOOTER
 # =========================================================
-
 st.markdown("---")
 
 st.markdown(
