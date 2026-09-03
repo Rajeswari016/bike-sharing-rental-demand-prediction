@@ -3,7 +3,6 @@ import joblib
 import pandas as pd
 import numpy as np
 import xgboost as xgb
-import os
 from pathlib import Path
 
 
@@ -25,15 +24,26 @@ BASE_DIR = Path(__file__).resolve().parent
 
 
 # =========================================================
+# FILE PATHS
+# =========================================================
+MODEL_FILE = BASE_DIR / "optimized_xgboost_model.json"
+SCALER_FILE = BASE_DIR / "scaler.pkl"
+ENCODER_FILE = BASE_DIR / "hour_bucket_encoder.pkl"
+
+# Your actual GitHub dataset filename
+DATA_FILE = BASE_DIR / "Bike_Sharing_Rental_Dataset.csvfile.csv"
+
+
+# =========================================================
 # DARK BLUE THEME
 # =========================================================
 st.markdown(
     """
     <style>
 
-    /* =================================================
-       MAIN PAGE
-       ================================================= */
+    /* ================================================
+       MAIN BACKGROUND
+       ================================================ */
 
     .stApp {
         background: linear-gradient(
@@ -45,9 +55,9 @@ st.markdown(
     }
 
 
-    /* =================================================
+    /* ================================================
        MAIN TITLE
-       ================================================= */
+       ================================================ */
 
     .main-title {
         text-align: center;
@@ -58,6 +68,7 @@ st.markdown(
         margin-bottom: 8px;
     }
 
+
     .main-subtitle {
         text-align: center;
         font-size: 18px;
@@ -66,9 +77,9 @@ st.markdown(
     }
 
 
-    /* =================================================
+    /* ================================================
        HEADINGS
-       ================================================= */
+       ================================================ */
 
     h1,
     h2,
@@ -80,18 +91,18 @@ st.markdown(
     }
 
 
-    /* =================================================
+    /* ================================================
        NORMAL TEXT
-       ================================================= */
+       ================================================ */
 
     p {
         color: #E6EEF8 !important;
     }
 
 
-    /* =================================================
+    /* ================================================
        SIDEBAR
-       ================================================= */
+       ================================================ */
 
     [data-testid="stSidebar"] {
         background: linear-gradient(
@@ -102,9 +113,11 @@ st.markdown(
         );
     }
 
+
     [data-testid="stSidebar"] * {
         color: #FFFFFF !important;
     }
+
 
     [data-testid="stSidebar"] label {
         color: #FFFFFF !important;
@@ -112,9 +125,9 @@ st.markdown(
     }
 
 
-    /* =================================================
+    /* ================================================
        SIDEBAR SELECT BOX
-       ================================================= */
+       ================================================ */
 
     [data-testid="stSidebar"] [data-baseweb="select"] > div {
         background-color: #123A67 !important;
@@ -123,9 +136,9 @@ st.markdown(
     }
 
 
-    /* =================================================
+    /* ================================================
        FEATURE CARDS
-       ================================================= */
+       ================================================ */
 
     [data-testid="stVerticalBlockBorderWrapper"] {
         background: linear-gradient(
@@ -146,14 +159,15 @@ st.markdown(
         color: #FFFFFF !important;
     }
 
+
     [data-testid="stVerticalBlockBorderWrapper"] p {
         color: #DCE8F5 !important;
     }
 
 
-    /* =================================================
+    /* ================================================
        METRIC CARDS
-       ================================================= */
+       ================================================ */
 
     [data-testid="stMetric"] {
         background: linear-gradient(
@@ -184,13 +198,12 @@ st.markdown(
     }
 
 
-    /* =================================================
+    /* ================================================
        BUTTON
-       ================================================= */
+       ================================================ */
 
     .stButton > button {
         width: 100%;
-
         background: linear-gradient(
             135deg,
             #2563EB,
@@ -223,18 +236,9 @@ st.markdown(
     }
 
 
-    /* =================================================
-       ALERT BOXES
-       ================================================= */
-
-    [data-testid="stAlert"] {
-        border-radius: 16px !important;
-    }
-
-
-    /* =================================================
+    /* ================================================
        DATAFRAME
-       ================================================= */
+       ================================================ */
 
     [data-testid="stDataFrame"] {
         background: #FFFFFF !important;
@@ -245,18 +249,27 @@ st.markdown(
     }
 
 
-    /* =================================================
+    /* ================================================
+       ALERTS
+       ================================================ */
+
+    [data-testid="stAlert"] {
+        border-radius: 16px !important;
+    }
+
+
+    /* ================================================
        DIVIDER
-       ================================================= */
+       ================================================ */
 
     hr {
         border-color: #3B5F86 !important;
     }
 
 
-    /* =================================================
+    /* ================================================
        FOOTER
-       ================================================= */
+       ================================================ */
 
     .footer-text {
         text-align: center;
@@ -272,74 +285,37 @@ st.markdown(
 
 
 # =========================================================
-# MODEL FILES
-# =========================================================
-MODEL_FILE = BASE_DIR / "optimized_xgboost_model.json"
-SCALER_FILE = BASE_DIR / "scaler.pkl"
-ENCODER_FILE = BASE_DIR / "hour_bucket_encoder.pkl"
-
-
-# =========================================================
-# DATASET FILE
-# =========================================================
-possible_dataset_files = [
-    "Bike_Sharing_Rental_Dataset.csvfile.csv",
-    "Dataset.csv",
-    "hour.csv",
-    "train.csv"
-]
-
-DATA_FILE = None
-
-for file_name in possible_dataset_files:
-
-    file_path = BASE_DIR / file_name
-
-    if file_path.exists():
-        DATA_FILE = file_path
-        break
-
-
-# =========================================================
 # CHECK MODEL FILES
 # =========================================================
-required_files = [
+required_model_files = [
     MODEL_FILE,
     SCALER_FILE,
     ENCODER_FILE
 ]
 
-missing_files = []
-
-for file_path in required_files:
-
-    if not file_path.exists():
-        missing_files.append(
-            file_path.name
-        )
+missing_model_files = [
+    file_path.name
+    for file_path in required_model_files
+    if not file_path.exists()
+]
 
 
-if missing_files:
+if missing_model_files:
 
-    st.error(
-        "❌ Required model files are missing."
-    )
+    st.error("❌ Required model files are missing.")
 
-    for file_name in missing_files:
-
-        st.warning(
-            f"Missing file: {file_name}"
-        )
+    for file_name in missing_model_files:
+        st.warning(f"Missing file: {file_name}")
 
     st.info(
-        "Make sure these files are in the same folder as app.py."
+        "The model files must be in the same folder as app.py."
     )
 
     st.stop()
 
 
 # =========================================================
-# LOAD MODEL AND PREPROCESSORS
+# LOAD MODEL
 # =========================================================
 try:
 
@@ -360,7 +336,7 @@ try:
 except Exception as e:
 
     st.error(
-        "❌ Error loading model or preprocessing files."
+        "❌ Error loading the model or preprocessing files."
     )
 
     st.code(
@@ -373,7 +349,6 @@ except Exception as e:
 # =========================================================
 # HELPER FUNCTIONS
 # =========================================================
-
 def get_peak_hour(hour):
 
     if hour in [7, 8, 9, 17, 18, 19]:
@@ -385,20 +360,15 @@ def get_peak_hour(hour):
 def get_hour_bucket_str(hour):
 
     if hour in [7, 8, 9]:
-
         return "morning_rush"
 
     elif hour in [17, 18, 19]:
-
         return "evening_rush"
 
     elif 10 <= hour <= 16:
-
         return "daytime"
 
-    else:
-
-        return "night"
+    return "night"
 
 
 def get_weekend(weekday):
@@ -413,9 +383,8 @@ def encode_hour_bucket(hour_bucket):
 
     try:
 
-        encoded = (
-            hour_bucket_encoder
-            .transform([hour_bucket])
+        encoded = hour_bucket_encoder.transform(
+            [hour_bucket]
         )
 
         return float(
@@ -428,9 +397,8 @@ def encode_hour_bucket(hour_bucket):
 
 
 # =========================================================
-# MAIN HEADER
+# HEADER
 # =========================================================
-
 st.markdown(
     '<div class="main-title">'
     '🚴 Bike Rental Demand Predictor'
@@ -450,7 +418,6 @@ st.markdown(
 # =========================================================
 # ABOUT PROJECT
 # =========================================================
-
 st.header(
     "🔍 About This Prediction System"
 )
@@ -504,7 +471,6 @@ with col3:
 # =========================================================
 # SIDEBAR
 # =========================================================
-
 st.sidebar.title(
     "🚴 Input Features"
 )
@@ -515,7 +481,6 @@ st.sidebar.markdown("---")
 # =========================================================
 # TIME INFORMATION
 # =========================================================
-
 st.sidebar.subheader(
     "📅 Time Information"
 )
@@ -556,7 +521,6 @@ weekday = st.sidebar.slider(
 # =========================================================
 # DAY INFORMATION
 # =========================================================
-
 st.sidebar.markdown("---")
 
 st.sidebar.subheader(
@@ -579,7 +543,6 @@ workingday_str = st.sidebar.selectbox(
 # =========================================================
 # WEATHER INFORMATION
 # =========================================================
-
 st.sidebar.markdown("---")
 
 st.sidebar.subheader(
@@ -626,7 +589,6 @@ windspeed_raw = st.sidebar.slider(
 # =========================================================
 # CONDITIONS
 # =========================================================
-
 st.sidebar.markdown("---")
 
 st.sidebar.subheader(
@@ -657,9 +619,8 @@ weathersit_str = st.sidebar.selectbox(
 
 
 # =========================================================
-# PREDICT BUTTON
+# PREDICTION BUTTON
 # =========================================================
-
 st.sidebar.markdown("---")
 
 
@@ -670,15 +631,14 @@ predict_button = st.sidebar.button(
 
 
 # =========================================================
-# PREDICTION SECTION
+# PREDICTION
 # =========================================================
-
 if predict_button:
 
     try:
 
         # -----------------------------------------------
-        # Holiday
+        # Convert categorical inputs
         # -----------------------------------------------
 
         holiday = (
@@ -688,10 +648,6 @@ if predict_button:
         )
 
 
-        # -----------------------------------------------
-        # Working day
-        # -----------------------------------------------
-
         workingday = (
             1
             if workingday_str == "Working Day"
@@ -700,7 +656,7 @@ if predict_button:
 
 
         # -----------------------------------------------
-        # Weather data
+        # Weather scaling
         # -----------------------------------------------
 
         weather_array = np.array([
@@ -722,13 +678,16 @@ if predict_button:
             scaled_features[0][0]
         )
 
+
         atemp = float(
             scaled_features[0][1]
         )
 
+
         hum = float(
             scaled_features[0][2]
         )
+
 
         windspeed = float(
             scaled_features[0][3]
@@ -817,7 +776,7 @@ if predict_button:
 
 
         # -----------------------------------------------
-        # Create input dataframe
+        # INPUT DATAFRAME
         # -----------------------------------------------
 
         input_data = pd.DataFrame(
@@ -869,7 +828,7 @@ if predict_button:
 
 
         # -----------------------------------------------
-        # Prediction
+        # MODEL PREDICTION
         # -----------------------------------------------
 
         prediction = loaded_model.predict(
@@ -904,10 +863,10 @@ if predict_button:
         )
 
 
-        result1, result2, result3 = st.columns(3)
+        r1, r2, r3 = st.columns(3)
 
 
-        with result1:
+        with r1:
 
             st.metric(
                 "🚴 Predicted Rentals",
@@ -915,7 +874,7 @@ if predict_button:
             )
 
 
-        with result2:
+        with r2:
 
             st.metric(
                 "⏰ Selected Hour",
@@ -923,7 +882,7 @@ if predict_button:
             )
 
 
-        with result3:
+        with r3:
 
             st.metric(
                 "🌤️ Weather",
@@ -1068,7 +1027,6 @@ if predict_button:
 # =========================================================
 # DATA VISUALIZATIONS
 # =========================================================
-
 st.markdown("---")
 
 st.header(
@@ -1076,14 +1034,17 @@ st.header(
 )
 
 
-if DATA_FILE is None:
+# ---------------------------------------------------------
+# Check dataset
+# ---------------------------------------------------------
+if not DATA_FILE.exists():
 
     st.warning(
         "⚠️ Dataset file not found."
     )
 
     st.info(
-        "Expected dataset file: "
+        "Expected dataset file:\n\n"
         "Bike_Sharing_Rental_Dataset.csvfile.csv"
     )
 
@@ -1117,7 +1078,7 @@ else:
         with v1:
 
             st.metric(
-                "📚 Records",
+                "📚 Total Records",
                 f"{len(viz_df):,}"
             )
 
@@ -1125,7 +1086,7 @@ else:
         with v2:
 
             st.metric(
-                "📊 Columns",
+                "📊 Total Columns",
                 len(viz_df.columns)
             )
 
@@ -1152,8 +1113,8 @@ else:
             else:
 
                 st.metric(
-                    "🚴 Demand Column",
-                    "Not Found"
+                    "🚴 Demand",
+                    "Column Missing"
                 )
 
 
@@ -1161,9 +1122,11 @@ else:
         # HOURLY DEMAND
         # =================================================
 
-        if {"hr", "cnt"}.issubset(
-            viz_df.columns
-        ):
+        if {
+            "hr",
+            "cnt"
+        }.issubset(viz_df.columns):
+
 
             st.subheader(
                 "⏰ Average Bike Rental Demand by Hour"
@@ -1185,7 +1148,7 @@ else:
 
 
             st.caption(
-                "Average rental demand for each hour."
+                "Average rental demand for each hour of the day."
             )
 
 
@@ -1193,9 +1156,11 @@ else:
         # MONTHLY DEMAND
         # =================================================
 
-        if {"mnth", "cnt"}.issubset(
-            viz_df.columns
-        ):
+        if {
+            "mnth",
+            "cnt"
+        }.issubset(viz_df.columns):
+
 
             st.subheader(
                 "📅 Average Bike Rental Demand by Month"
@@ -1220,9 +1185,11 @@ else:
         # SEASON-WISE DEMAND
         # =================================================
 
-        if {"season", "cnt"}.issubset(
-            viz_df.columns
-        ):
+        if {
+            "season",
+            "cnt"
+        }.issubset(viz_df.columns):
+
 
             st.subheader(
                 "🍂 Season-wise Bike Rental Demand"
@@ -1247,9 +1214,11 @@ else:
         # WORKING DAY
         # =================================================
 
-        if {"workingday", "cnt"}.issubset(
-            viz_df.columns
-        ):
+        if {
+            "workingday",
+            "cnt"
+        }.issubset(viz_df.columns):
+
 
             st.subheader(
                 "💼 Working Day vs Non-Working Day"
@@ -1282,9 +1251,11 @@ else:
         # WEATHER
         # =================================================
 
-        if {"weathersit", "cnt"}.issubset(
-            viz_df.columns
-        ):
+        if {
+            "weathersit",
+            "cnt"
+        }.issubset(viz_df.columns):
+
 
             st.subheader(
                 "🌦️ Weather Situation vs Rental Demand"
@@ -1309,16 +1280,18 @@ else:
         # TEMPERATURE
         # =================================================
 
-        if {"temp", "cnt"}.issubset(
-            viz_df.columns
-        ):
+        if {
+            "temp",
+            "cnt"
+        }.issubset(viz_df.columns):
+
 
             st.subheader(
                 "🌡️ Temperature vs Rental Demand"
             )
 
 
-            temp_groups = pd.cut(
+            temp_bins = pd.cut(
                 viz_df["temp"],
                 bins=10
             )
@@ -1327,7 +1300,7 @@ else:
             temp_demand = (
                 viz_df
                 .groupby(
-                    temp_groups,
+                    temp_bins,
                     observed=True
                 )["cnt"]
                 .mean()
@@ -1350,16 +1323,18 @@ else:
         # HUMIDITY
         # =================================================
 
-        if {"hum", "cnt"}.issubset(
-            viz_df.columns
-        ):
+        if {
+            "hum",
+            "cnt"
+        }.issubset(viz_df.columns):
+
 
             st.subheader(
                 "💧 Humidity vs Rental Demand"
             )
 
 
-            humidity_groups = pd.cut(
+            humidity_bins = pd.cut(
                 viz_df["hum"],
                 bins=10
             )
@@ -1368,7 +1343,7 @@ else:
             humidity_demand = (
                 viz_df
                 .groupby(
-                    humidity_groups,
+                    humidity_bins,
                     observed=True
                 )["cnt"]
                 .mean()
@@ -1391,16 +1366,18 @@ else:
         # WINDSPEED
         # =================================================
 
-        if {"windspeed", "cnt"}.issubset(
-            viz_df.columns
-        ):
+        if {
+            "windspeed",
+            "cnt"
+        }.issubset(viz_df.columns):
+
 
             st.subheader(
                 "💨 Windspeed vs Rental Demand"
             )
 
 
-            wind_groups = pd.cut(
+            wind_bins = pd.cut(
                 viz_df["windspeed"],
                 bins=10
             )
@@ -1409,7 +1386,7 @@ else:
             wind_demand = (
                 viz_df
                 .groupby(
-                    wind_groups,
+                    wind_bins,
                     observed=True
                 )["cnt"]
                 .mean()
@@ -1429,12 +1406,14 @@ else:
 
 
         # =================================================
-        # PEAK HOUR
+        # PEAK HOURS
         # =================================================
 
-        if {"hr", "cnt"}.issubset(
-            viz_df.columns
-        ):
+        if {
+            "hr",
+            "cnt"
+        }.issubset(viz_df.columns):
+
 
             st.subheader(
                 "🔥 Peak Hours vs Normal Hours"
@@ -1477,6 +1456,7 @@ else:
         # =================================================
 
         if "cnt" in viz_df.columns:
+
 
             st.subheader(
                 "📊 Rental Demand Summary"
