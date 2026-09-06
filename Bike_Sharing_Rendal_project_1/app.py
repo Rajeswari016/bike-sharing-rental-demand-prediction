@@ -1436,6 +1436,22 @@ else:
                         "⬇️ Minimum Rentals",
                         f"{minimum_rentals:,}"
                     )
+                    with s4:
+
+                    st.metric(
+                        "⬇️ Minimum Rentals",
+                        f"{minimum_rentals:,}"
+                    )
+
+    except Exception as e:
+
+        st.error(
+            "❌ Error while loading or visualizing the dataset."
+        )
+
+        st.code(
+            str(e)
+        )
 
 # =========================================================
 # FOOTER
