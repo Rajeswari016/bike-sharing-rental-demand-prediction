@@ -1437,33 +1437,6 @@ else:
                         f"{minimum_rentals:,}"
                     )
 
-
-        # =================================================
-        # DATASET PREVIEW
-        # =================================================
-        st.subheader(
-            "👀 Dataset Preview"
-        )
-
-
-        st.dataframe(
-            viz_df.head(10),
-            use_container_width=True,
-            hide_index=True
-        )
-
-
-    except Exception as e:
-
-        st.error(
-            "❌ Visualization section error."
-        )
-
-        st.code(
-            str(e)
-        )
-
-
 # =========================================================
 # FOOTER
 # =========================================================
