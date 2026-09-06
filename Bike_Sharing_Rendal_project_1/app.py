@@ -1126,6 +1126,7 @@ else:
                 use_container_width=True
             )
 
+
         # =================================================
         # TEMPERATURE
         # =================================================
@@ -1436,12 +1437,7 @@ else:
                         "⬇️ Minimum Rentals",
                         f"{minimum_rentals:,}"
                     )
-                    with s4:
 
-                    st.metric(
-                        "⬇️ Minimum Rentals",
-                        f"{minimum_rentals:,}"
-                    )
 
     except Exception as e:
 
@@ -1452,6 +1448,7 @@ else:
         st.code(
             str(e)
         )
+
 
 # =========================================================
 # FOOTER
